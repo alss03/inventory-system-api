@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { productRoutes } from "./modules/products/product.routes.js";
+import { stockRoutes } from "./modules/stock/stock.routes.js";
 
 const app = Fastify({
   logger: true,
@@ -18,6 +19,7 @@ app.get("/health", async () => {
 });
 
 app.register(productRoutes);
+app.register(stockRoutes);
 
 const start = async () => {
   try {

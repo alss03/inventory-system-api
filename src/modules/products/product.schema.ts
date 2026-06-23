@@ -6,7 +6,7 @@ export const createProductSchema = z.object({
   currentStock: z.number().int().nonnegative(),
   minimumStock: z.number().int().nonnegative(),
   unitCost: z.number().positive(),
-  supplierId: z.string().uuid().optional(),
+  supplierId: z.uuid().optional(),
 });
 
 export type CreateProductDTO = z.infer<typeof createProductSchema>;
