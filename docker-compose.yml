@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: medvelle-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: medvelle
+      POSTGRES_PASSWORD: medvelle
+      POSTGRES_DB: medvelle_ai
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

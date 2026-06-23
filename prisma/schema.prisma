@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum StockMovementType {
+  IN
+  OUT
+}
+
+enum RecommendationUrgency {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Supplier {
+  id        String    @id @default(uuid())
+  name      String
+  leadTime  Int
+  products  Product[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("suppliers")
+}
+
+model Product {
+  id              String          @id @default(uuid())
+  name            String
+  sku             String          @unique
+  currentStock    Int             @default(0)
+  minimumStock    Int
+  unitCost        Decimal         @db.Decimal(10, 2)
+  supplierId      String?
+
+  supplier        Supplier?       @relation(fields: [supplierId], references: [id])
+  stockMovements  StockMovement[]
+  recommendations AIRecommendation[]
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@map("products")
+}
+
+model StockMovement {
+  id        String            @id @default(uuid())
+  productId String
+  type      StockMovementType
+  quantity  Int
+  reason    String?
+
+  product   Product           @relation(fields: [productId], references: [id])
+
+  createdAt DateTime          @default(now())
+
+  @@map("stock_movements")
+}
+
+model AIRecommendation {
+  id                 String               @id @default(uuid())
+  productId          String
+  urgency            RecommendationUrgency
+  recommendedAction  String
+  reason             String
+
+  product            Product              @relation(fields: [productId], references: [id])
+
+  createdAt          DateTime              @default(now())
+
+  @@map("ai_recommendations")
+}
