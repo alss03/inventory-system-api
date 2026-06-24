@@ -28,6 +28,14 @@ export class StockRepository {
     });
   }
 
+  async findProductsForStockAlerts() {
+    return prisma.product.findMany({
+      orderBy: {
+        currentStock: "asc",
+      },
+    });
+  }
+
   async listMovements() {
     return prisma.stockMovement.findMany({
       orderBy: {

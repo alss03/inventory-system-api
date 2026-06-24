@@ -18,4 +18,10 @@ export class StockController {
 
     return reply.send(movements);
   }
+
+  async alerts(_request: FastifyRequest, reply: FastifyReply) {
+    const alerts = await stockService.getStockAlerts();
+
+    return reply.send(alerts);
+  }
 }
