@@ -1,5 +1,6 @@
 import { StockRepository } from "./stock.repository.js";
 import type { CreateStockMovementDTO } from "./stock.schema.js";
+import { AppError } from "../../shared/errors/app-error.js";
 
 type StockAlertSeverity = "LOW" | "MEDIUM" | "HIGH";
 
@@ -18,7 +19,7 @@ export class StockService {
     const product = await this.repository.findProductById(data.productId);
 
     if (!product) {
-      throw new Error("Product not found");
+      throw new AppError("Product not found", 404);
     }
 
     const newStock =
@@ -27,7 +28,7 @@ export class StockService {
         : product.currentStock - data.quantity;
 
     if (newStock < 0) {
-      throw new Error("Insufficient stock");
+      throw new AppError("Insufficient stock", 400);
     }
 
     const movement = await this.repository.createMovement(data);

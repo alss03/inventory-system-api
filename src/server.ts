@@ -2,10 +2,12 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { productRoutes } from "./modules/products/product.routes.js";
 import { stockRoutes } from "./modules/stock/stock.routes.js";
+import { errorHandler } from "./shared/errors/error-handler.js";
 
 const app = Fastify({
   logger: true,
 });
+app.setErrorHandler(errorHandler);
 
 app.register(cors, {
   origin: true,
