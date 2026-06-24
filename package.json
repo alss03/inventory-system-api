@@ -5,7 +5,8 @@
   "scripts": {
     "test": "vitest",
     "dev": "tsx watch src/server.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "seed": "tsx prisma/seeds/seed.ts"
   },
   "keywords": [],
   "author": "",
