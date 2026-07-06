@@ -16,31 +16,19 @@ export class StockService {
   constructor(private readonly repository = new StockRepository()) {}
 
   async createMovement(data: CreateStockMovementDTO) {
-    const product = await this.repository.findProductById(data.productId);
+    const result = await this.repository.createMovementAtomically(data);
 
-    if (!product) {
+    if (result.status === "product_not_found") {
       throw new AppError("Product not found", 404);
     }
 
-    const newStock =
-      data.type === "IN"
-        ? product.currentStock + data.quantity
-        : product.currentStock - data.quantity;
-
-    if (newStock < 0) {
+    if (result.status === "insufficient_stock") {
       throw new AppError("Insufficient stock", 400);
     }
 
-    const movement = await this.repository.createMovement(data);
-
-    const updatedProduct = await this.repository.updateProductStock(
-      data.productId,
-      newStock
-    );
-
     return {
-      movement,
-      product: updatedProduct,
+      movement: result.movement,
+      product: result.product,
     };
   }
 

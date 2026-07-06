@@ -4,9 +4,7 @@ import { StockService } from "./stock.service.js";
 import type { StockRepository } from "./stock.repository.js";
 
 const repository = {
-  findProductById: vi.fn(),
-  createMovement: vi.fn(),
-  updateProductStock: vi.fn(),
+  createMovementAtomically: vi.fn(),
   findProductsForStockAlerts: vi.fn(),
   listMovements: vi.fn(),
 };
@@ -20,15 +18,14 @@ describe("StockService", () => {
   });
 
   describe("createMovement", () => {
-    it("adds an incoming quantity to the current stock", async () => {
-      repository.findProductById.mockResolvedValue({
-        id: "product-1",
-        currentStock: 10,
-      });
-      repository.createMovement.mockResolvedValue({ id: "movement-1" });
-      repository.updateProductStock.mockResolvedValue({
-        id: "product-1",
-        currentStock: 15,
+    it("returns the movement and updated product from the atomic operation", async () => {
+      repository.createMovementAtomically.mockResolvedValue({
+        status: "created",
+        movement: { id: "movement-1" },
+        product: {
+          id: "product-1",
+          currentStock: 15,
+        },
       });
 
       const data = {
@@ -42,38 +39,13 @@ describe("StockService", () => {
         movement: { id: "movement-1" },
         product: { id: "product-1", currentStock: 15 },
       });
-      expect(repository.createMovement).toHaveBeenCalledWith(data);
-      expect(repository.updateProductStock).toHaveBeenCalledWith(
-        "product-1",
-        15
-      );
+      expect(repository.createMovementAtomically).toHaveBeenCalledWith(data);
     });
 
-    it("subtracts an outgoing quantity from the current stock", async () => {
-      repository.findProductById.mockResolvedValue({
-        id: "product-1",
-        currentStock: 10,
+    it("maps a missing product result to a 404 error", async () => {
+      repository.createMovementAtomically.mockResolvedValue({
+        status: "product_not_found",
       });
-      repository.createMovement.mockResolvedValue({ id: "movement-1" });
-      repository.updateProductStock.mockResolvedValue({
-        id: "product-1",
-        currentStock: 6,
-      });
-
-      await service.createMovement({
-        productId: "product-1",
-        type: "OUT",
-        quantity: 4,
-      });
-
-      expect(repository.updateProductStock).toHaveBeenCalledWith(
-        "product-1",
-        6
-      );
-    });
-
-    it("throws when the product does not exist", async () => {
-      repository.findProductById.mockResolvedValue(null);
 
       const promise = service.createMovement({
         productId: "missing-product",
@@ -86,13 +58,11 @@ describe("StockService", () => {
         message: "Product not found",
         statusCode: 404,
       });
-      expect(repository.createMovement).not.toHaveBeenCalled();
     });
 
-    it("throws when an outgoing movement would make stock negative", async () => {
-      repository.findProductById.mockResolvedValue({
-        id: "product-1",
-        currentStock: 2,
+    it("maps an insufficient stock result to a 400 error", async () => {
+      repository.createMovementAtomically.mockResolvedValue({
+        status: "insufficient_stock",
       });
 
       const promise = service.createMovement({
@@ -106,8 +76,6 @@ describe("StockService", () => {
         message: "Insufficient stock",
         statusCode: 400,
       });
-      expect(repository.createMovement).not.toHaveBeenCalled();
-      expect(repository.updateProductStock).not.toHaveBeenCalled();
     });
   });
 
